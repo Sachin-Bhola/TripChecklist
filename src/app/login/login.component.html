@@ -1,6 +1,12 @@
 <div class="cotaniner">
     <div class="login-form">
-        <h2>Login with one of these available social account</h2>
-
+        <h2 class="login-heading">Login with one of these available social account</h2>
+        <div class="google-btn" (click)="signInWithGoogle()">
+            <div class="google-icon-wrapper">
+                <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" />
+            </div>
+            <p class="btn-text">Sign in with google</p>
+        </div>
+        <!-- <button (click)="signInWithFB()"> Facebook Login </button> -->
     </div>
 </div>
