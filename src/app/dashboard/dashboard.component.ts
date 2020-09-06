@@ -1,32 +1,47 @@
-import { Component, OnInit } from '@angular/core';
-import { SocialAuthService, SocialUser } from 'angularx-social-login';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { LocalStorageService } from '../services/local-storage.service';
+import { AuthService as SocialLoginService } from "angularx-social-login";
+import { EventEmitterService } from "../services/event-emitter.service";
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
 
-  user: SocialUser;
+  loggedIn: boolean;
+  userDataSub: Subscription;
+  userData: object;
 
-  constructor(private authService: SocialAuthService,
-    private router: Router,
-    private localStorageService: LocalStorageService) { }
+  constructor(private router: Router,
+    private socialLoginService: SocialLoginService,
+    private localStorageService: LocalStorageService,
+    private eventEmitterService: EventEmitterService) { }
 
   ngOnInit(): void {
-    this.authService.authState.subscribe((user) => {
-      this.user = user;
+    console.log(this.userData)
+    this.userDataSub = this.eventEmitterService.userData.subscribe(res => {
+      if (res) {
+        this.userData = JSON.parse(JSON.stringify(res));
+      }
     });
   }
 
   signOut(): void {
-    this.authService.signOut().then(() => {
+    this.socialLoginService.signOut().then(() => {
       this.localStorageService.clearStorage();
       this.router.navigate(['/login']);
     });
+  }
+
+  ngOnDestroy() {
+    if (this.userDataSub) {
+      this.userDataSub.unsubscribe();  
+    }
+
   }
 
 }

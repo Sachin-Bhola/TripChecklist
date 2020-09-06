@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { SocialAuthService } from "angularx-social-login";
+import { Component, OnInit, EventEmitter } from '@angular/core';
 import { FacebookLoginProvider, GoogleLoginProvider } from "angularx-social-login";
 import { LocalStorageService } from '../services/local-storage.service';
 import { Router } from '@angular/router';
-
+import { LoginService } from '../services/login.service';
+import { AuthService as SocialLoginService } from "angularx-social-login";
+import { EventEmitterService } from "../services/event-emitter.service";
 
 @Component({
   selector: 'app-login',
@@ -12,28 +13,43 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent implements OnInit {
 
-  constructor(private authService: SocialAuthService,
-    private localStorageService: LocalStorageService,
-    private router:Router) { }
+  constructor(private localStorageService: LocalStorageService,
+    private loginService: LoginService,
+    private socialLoginService: SocialLoginService,
+    private eventEmitter: EventEmitterService,
+    private router: Router) { }
 
   ngOnInit(): void {
   }
 
   signInWithGoogle(): void {
-    this.authService.signIn(GoogleLoginProvider.PROVIDER_ID).then(res => {
+    this.socialLoginService.signIn(GoogleLoginProvider.PROVIDER_ID).then(res => {
       if (res) {
-        this.localStorageService.setAccessToken(res.idToken);
-        this.router.navigate(['/dashboard']);
+        this.logInUser(res);
       }
     });
   }
 
   signInWithFB(): void {
-    this.authService.signIn(FacebookLoginProvider.PROVIDER_ID);
+    this.socialLoginService.signIn(FacebookLoginProvider.PROVIDER_ID).then(res => {
+      if (res) {
+        this.logInUser(res);
+      }
+    });
   }
 
-  signOut(): void {
-    this.authService.signOut();
+  async logInUser(userDetails) {
+    try {
+      const res = await this.loginService.login(userDetails);
+      this.localStorageService.setAccessToken(res.token);
+      this.router.navigate(['/dashboard']).then(() => {
+        setTimeout(() => {
+          this.eventEmitter.emitUserData(res);
+        }, 1000);
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
 }
