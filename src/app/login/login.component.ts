@@ -25,7 +25,7 @@ export class LoginComponent implements OnInit {
   signInWithGoogle(): void {
     this.socialLoginService.signIn(GoogleLoginProvider.PROVIDER_ID).then(res => {
       if (res) {
-        this.logInUser(res);
+        this.logInUser(res,'google');
       }
     });
   }
@@ -33,14 +33,19 @@ export class LoginComponent implements OnInit {
   signInWithFB(): void {
     this.socialLoginService.signIn(FacebookLoginProvider.PROVIDER_ID).then(res => {
       if (res) {
-        this.logInUser(res);
+        this.logInUser(res,'facebook');
       }
     });
   }
 
-  async logInUser(userDetails) {
+  async logInUser(userDetails,loginWith) {
     try {
-      const res = await this.loginService.login(userDetails);
+      let res;
+      if (loginWith === 'google') {
+       res = await this.loginService.loginByGoogle(userDetails);
+      } else {
+        res = await this.loginService.loginByFacebook(userDetails);
+      }
       this.localStorageService.setAccessToken(res.token);
       this.router.navigate(['/dashboard']).then(() => {
         setTimeout(() => {

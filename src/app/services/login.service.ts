@@ -9,7 +9,11 @@ export class LoginService {
 
   constructor(private http: HttpClient) { }
 
-  login(body): Promise<any> {
+  loginByGoogle(body): Promise<any> {
     return this.http.post(`${environment.baseUrl}/api/auth/googleauthenticate`, body).toPromise();
+  }
+
+  loginByFacebook(body): Promise<any> {
+    return this.http.post(`${environment.baseUrl}/api/auth/facebookauth`, body).toPromise();
   }
 }
