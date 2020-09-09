@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { LocalStorageService } from '../services/local-storage.service';
-import { AuthService as SocialLoginService } from "angularx-social-login";
 import { EventEmitterService } from "../services/event-emitter.service";
 import { Subscription } from 'rxjs';
+
+declare const gapi: any;
 
 @Component({
   selector: 'app-dashboard',
@@ -17,12 +18,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   userData: object;
 
   constructor(private router: Router,
-    private socialLoginService: SocialLoginService,
     private localStorageService: LocalStorageService,
     private eventEmitterService: EventEmitterService) { }
 
   ngOnInit(): void {
-    console.log(this.userData)
     this.userDataSub = this.eventEmitterService.userData.subscribe(res => {
       if (res) {
         this.userData = JSON.parse(JSON.stringify(res));
@@ -31,15 +30,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   signOut(): void {
-    this.socialLoginService.signOut().then(() => {
-      this.localStorageService.clearStorage();
-      this.router.navigate(['/login']);
-    });
+    if (gapi?.auth2?.getAuthInstance()?.currentUser?.get()?.wc) {
+      gapi.auth2.getAuthInstance().currentUser.get().reloadAuthResponse();
+      setTimeout(() => {
+        var auth2 = gapi.auth2.getAuthInstance();
+        auth2.signOut();
+      }, 1000);
+    }
+
+    this.localStorageService.clearStorage();
+    this.router.navigate(['/login']);
   }
 
   ngOnDestroy() {
     if (this.userDataSub) {
-      this.userDataSub.unsubscribe();  
+      this.userDataSub.unsubscribe();
     }
 
   }
